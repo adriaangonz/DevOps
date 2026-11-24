@@ -1,0 +1,38 @@
+services:
+  db:
+    image: mysql:8.0
+    container_name: devops-mysql
+    restart: unless-stopped
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: devops_servidores
+      MYSQL_USER: devops
+      MYSQL_PASSWORD: devopspassword
+    ports:
+      - "3307:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-prootpassword"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+
+  app:
+    build: .
+    image: gestion-servidores-devops:actividad3
+    container_name: devops-java-app
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DB_HOST: db
+      DB_PORT: 3306
+      DB_NAME: devops_servidores
+      DB_USER: devops
+      DB_PASSWORD: devopspassword
+    stdin_open: true
+    tty: true
+
+volumes:
+  mysql_data:
